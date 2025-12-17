@@ -27,29 +27,31 @@ export interface ITaskBoardWebPartProps {
 }
 
 export default class TaskBoardWebPart extends BaseClientSideWebPart<ITaskBoardWebPartProps> {
-  public render(): void {
-    const element: React.ReactElement<ITaskBoardProps> = React.createElement(TaskBoard, {
-      tasks: [],
-      isLoading: true,
-      onReload: () => this.loadTasks(),
-      title: this.properties.listTitle || 'Tasks'
-    });
+  private tasks: ITaskItem[] = [];
+  private isLoading = true;
+  private error?: string;
 
-    ReactDom.render(element, this.domElement);
+  public render(): void {
+    this.renderBoard();
     this.loadTasks();
   }
 
   private async loadTasks(): Promise<void> {
-    const items = await this.fetchTasks();
+    this.isLoading = true;
+    this.error = undefined;
+    this.renderBoard();
 
-    const element: React.ReactElement<ITaskBoardProps> = React.createElement(TaskBoard, {
-      tasks: items,
-      isLoading: false,
-      onReload: () => this.loadTasks(),
-      title: this.properties.listTitle || 'Tasks'
-    });
+    try {
+      this.tasks = await this.fetchTasks();
+    } catch (err) {
+      // Helpful error for Workbench testing when list is missing or permissions are wrong
+      this.error = `Kunne ikke hente opgaver fra listen "${this.properties.listTitle || 'Tasks'}". ` +
+        'Tjek at listen findes, og at du har rettigheder.';
+      this.tasks = [];
+    }
 
-    ReactDom.render(element, this.domElement);
+    this.isLoading = false;
+    this.renderBoard();
   }
 
   private async fetchTasks(): Promise<ITaskItem[]> {
@@ -58,6 +60,9 @@ export default class TaskBoardWebPart extends BaseClientSideWebPart<ITaskBoardWe
       `?$select=Id,Title,Status,DueDate,ParentId,Progress,AssignedTo/Title,AssignedTo/EMail&$expand=AssignedTo&$orderby=Id asc`;
 
     const response: SPHttpClientResponse = await this.context.spHttpClient.get(endpoint, SPHttpClient.configurations.v1);
+    if (!response.ok) {
+      throw new Error(`SharePoint API fejl: ${response.statusText}`);
+    }
     const json = await response.json();
     return json.value as ITaskItem[];
   }
@@ -68,6 +73,18 @@ export default class TaskBoardWebPart extends BaseClientSideWebPart<ITaskBoardWe
 
   protected get dataVersion(): Version {
     return Version.parse('1.0');
+  }
+
+  private renderBoard(): void {
+    const element: React.ReactElement<ITaskBoardProps> = React.createElement(TaskBoard, {
+      tasks: this.tasks,
+      isLoading: this.isLoading,
+      onReload: () => this.loadTasks(),
+      title: this.properties.listTitle || 'Tasks',
+      error: this.error
+    });
+
+    ReactDom.render(element, this.domElement);
   }
 
   protected getPropertyPaneConfiguration(): IPropertyPaneConfiguration {

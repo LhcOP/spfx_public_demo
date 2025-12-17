@@ -28,6 +28,10 @@ Webparten består af:
 2. Erstat de genererede filer med indholdet i `src/TaskBoardWebPart.ts` og `src/components/TaskBoard.tsx` (justér stier afhængigt af den genererede struktur).
 3. Opdater `TaskBoardWebPart.manifest.json` med passende beskrivelse og ikoner.
 4. Kør `npm install` og `gulp serve --nobrowser` for lokal test med Workbench.
+5. I Workbench: indsæt webparten, åbn property pane og angiv den task-liste titel du vil bruge.
+6. Hvis du får en fejlbesked i webparten, tjek at listen findes, at felter matcher nedenstående skema, og at din bruger har rettigheder til at læse den.
+
+> Tip til hurtig test: Opret en liste med navn **Tasks** og kolonnerne Title (Standard), Status (Choice), DueDate (Date/Time), AssignedTo (Person, enkeltværdi), ParentId (Number), Progress (Number). Opret et par elementer hvor ParentId peger på et andet element for at se underopgaver.
 
 ## Listekald og sikkerhed
 

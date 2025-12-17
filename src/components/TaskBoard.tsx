@@ -6,6 +6,7 @@ export interface ITaskBoardProps {
   tasks: ITaskItem[];
   isLoading: boolean;
   onReload: () => void;
+  error?: string;
 }
 
 interface IGroupedTask extends ITaskItem {
@@ -58,7 +59,7 @@ const StatusBadge: React.FC<{ status?: string }> = ({ status }) => {
   );
 };
 
-const TaskBoard: React.FC<ITaskBoardProps> = ({ title, tasks, isLoading, onReload }) => {
+const TaskBoard: React.FC<ITaskBoardProps> = ({ title, tasks, isLoading, onReload, error }) => {
   const grouped = groupTasks(tasks);
 
   return (
@@ -67,6 +68,11 @@ const TaskBoard: React.FC<ITaskBoardProps> = ({ title, tasks, isLoading, onReloa
         <h2 style={{ margin: 0 }}>{title}</h2>
         <button onClick={onReload} disabled={isLoading}>Opdater</button>
       </div>
+      {error && (
+        <div style={{ marginBottom: 12, color: '#c92a2a', background: '#fff5f5', padding: 10, borderRadius: 8 }}>
+          {error}
+        </div>
+      )}
       {isLoading && <div>Indlæser data...</div>}
       {!isLoading && grouped.length === 0 && <div>Ingen opgaver fundet.</div>}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
